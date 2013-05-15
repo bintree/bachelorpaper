@@ -3,7 +3,7 @@ all: presentation.pdf speech.pdf
 clean:
 	/bin/rm -f *.mps *.gps *.log *.aux *.toc *.dvi *.ps *.pdf *.nav *.snm *.out *.vrb *.mpx
 
-presentation.pdf: presentation.tex
+presentation.pdf: presentation.tex ../resources/*/* ../resources/*
 #/bin/rm -rf *.log *.aux *.toc  *.dvi *.ps *.pdf *.nav *.snm *.out *.mps *.vrb *.mpx
 #	TEX=latex mpost graphics end
 #	latex presentation.tex
