@@ -15,6 +15,7 @@
 \usepackage{url}
 \usepackage{appendix}
 \usepackage{enumerate}
+\usepackage{totcount}
 
 \newcommand{\EN}[1]{{#1}}
 \newcommand{\CODE}[1]{{\ttfamily #1}}
@@ -61,6 +62,15 @@
 \headheight = 0cm
 \headsep = 0cm
 \textheight = 26.5cm
+
+\newtotcounter[auxfile=totals.aux]{figurecnt}
+\def\oldfigure{} \let\oldfigure=\figure
+\def\figure{\stepcounter{figurecnt}\oldfigure}
+\newtotcounter[auxfile=totals.aux]{bibcnt}
+\def\oldbibitem{} \let\oldbibitem=\bibitem
+\def\bibitem{\stepcounter{bibcnt}\oldbibitem}
+\regtotcounter[auxfile=totals.aux]{page}
+
 
 \begin{document}
 \sloppy
