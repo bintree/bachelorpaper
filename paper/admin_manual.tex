@@ -1,0 +1,250 @@
+\section{Руководство администратора}
+
+\subsection*{Требования к аппаратному и программному обеспечению}
+
+\textbf{Сервер баз данных:}
+\begin{itemize}
+\item{
+Процессор: XEON, не менее 2х ядер
+}
+\item{
+ОЗУ:  8-16GB
+}
+\item{
+Диск от 250GB
+}
+\item{
+Microsoft Windows Server 2008 Standard (64-bit) 6.0.6002 Service Pack 2 Build 6002 
+}
+\item{
+Microsoft SQL Server Standard Edition (64-bit)
+}
+\end{itemize}
+
+
+\textbf{Веб-сервер:}
+\begin{itemize}
+\item{
+Процессор: XEON, не менее 2х ядер
+}
+\item{
+ОЗУ:  4-16GB
+}
+\item{
+Диск от 250GB
+}
+\item{
+rhel-server-6.2-x86\_64
+}
+\end{itemize}
+
+\textbf{Сеть:} 100Mb соединение между веб-сервером и сервером баз данных.
+
+\subsection*{Установка и настройка системы на Red Hat Enterprise Linux Server 6.2}
+
+Процесс установки системы тестировался на rhel-server-6.2-x86\_64.
+
+В процессе установки сервер должен быть подключен к интернету для загрузки необходимых пакетов.
+
+В описании процесса установки курсивом выделены команды, которые необходимо выполнить в консоли.
+
+Команды необходимо выполнять от имени пользователя, обладающего административными привилегиями.
+
+В случае ошибок при выполнении команд необходимо прервать процесс установки и обратиться к разработчику, предоставив консольный вывод выполнения команды.
+
+Если устанавливается дистрибутив версии больше чем 0.3, в командах ниже нужно заменить lm-reports-0.3.tar.gz на название файла дистрибутива.
+
+\textbf{Процедура установки:}
+\begin{enumerate}
+\item{
+Зарегистрироваться для получения доступа к репозиториям redhat:
+
+\textit{sudo rhn\_register
+}
+
+Указать логин и пароль аккаунта на redhat.com. На странице “Create your system profile - Packages” оставить набор пакетов по умолчанию.
+}
+\item{
+Подключить репозитории для пакетов, отсутствующих в репозитории redhat:
+
+\textit{sudo yum install http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-7.noarch.rpm http://rpms.famillecollet.com/enterprise/6/remi/x86\_64/remi-release-6-1.el6.remi.noarch.rpm
+}
+
+}
+\item{
+Разрешить использование репозитория remi: отредактировать файл /etc/yum.repos.d/remi.repo . В этом файле в секции [remi] необходимо заменить значение параметра enabled с 0 на 1:
+
+\textit{[remi]\\
+enabled=1
+}
+}
+\item{
+Установить пакеты:
+
+\textit{sudo yum install git httpd httpd-itk php php-mbstring php-pdo php-mssql php-xml freetds gearmand libgearman supervisor php-pecl-gearman
+}
+}
+\item{
+Включить автозагрузку сервисов:
+
+\textit{sudo chkconfig httpd on\\
+sudo chkconfig gearmand on\\
+sudo chkconfig supervisord on\\
+}
+}
+\item{
+Создать пользователя, от имени которого будут работать скрипты:
+
+\textit{sudo adduser -s /sbin/nologin lm-reports
+}
+}
+\item{
+Развернуть рабочую копию системы из дистрибутива Lighthouse Reports, выполнив нижеприведенные команды. Команды необходимо выполнять из каталога, в котором находится дистрибутив Lighthouse Reports. 
+
+\textit{sudo -ulm-reports mkdir /home/lm-reports/www\\
+sudo -ulm-reports tar -xvzf lm-reports-0.3.tar.gz -C /home/lm-reports/www
+}
+}
+\item{
+Скопировать конфигурационные файлы для php, apache, freetds:
+
+\textit{sudo cp /home/lm-reports/www/web/protected/config/rhel/php.ini /etc/php.d/lm-reports.ini\\
+sudo cp /home/lm-reports/www/web/protected/config/rhel/vhost.conf /etc/httpd/conf.d/lm-reports.conf\\
+sudo cp /etc/freetds.conf /etc/freetds.conf.bak\\
+sudo cp /home/lm-reports/www/web/protected/config/rhel/freetds.conf /etc/freetds.conf
+}
+}
+\item{
+В файле /etc/httpd/conf.d/lm-reports.conf подставить необходимые значения параметров VirtualHost (в формате <VirtualHost ip:port> или <VirtualHost *:port>) и ServerName (доменное имя).
+}
+\item{
+Создать каталог для хранения сессий apache в режиме mpm-itk:
+
+\textit{chmod 0771 /var/lib/php/session\\
+mkdir -m 0770 /var/lib/php/session/lm-reports\\
+chown root.lm-reports /var/lib/php/session/lm-reports
+}
+}
+\item{
+В файле /etc/sysconfig/httpd добавить (или заменить, или отредактировать) следующую строку:
+
+\textit{HTTPD=/usr/sbin/httpd.itk
+}
+}
+\item{
+Перезагрузить apache:
+
+\textit{sudo /etc/init.d/httpd restart
+}
+}
+\item{
+Если для доступа к сайту будет использоваться доменное имя, настроить DNS.
+}
+\item{
+Проверить настройки файрвола на сервере. Должны быть разрешены tcp-соединения на 80 порт. 
+}
+\item{
+Проверить соединение с базой. В следующей команде вместо 192.168.1.98 подставить ip сервера баз данных и выполнить:
+
+\textit{php -r "\$pdo = new PDO('dblib:host=192.168.1.98;dbname=lm\_reports', 'lm\_reports', 'cedb0f1d9cba94');"
+}
+
+Проверка корректна, если команда не выводит ошибок.
+}
+\item{
+Скопировать из шаблона конфигурационный файл сайта:
+
+\textit{sudo -u lm-reports cp /home/lm-reports/www/web/protected/config/main.local.example.php /home/lm-reports/www/web/protected/config/main.local.php
+}
+}
+\item{
+Отредактировать конфигурационный файл сайта /home/lm-reports/www/web/protected/config/main.local.php. Должны быть переопределены все параметры, указанные в конфигурационном файле: настройки соединения с базой, настройки соединения с почтовым сервером, почтовый ящик, с которого отправляются письма.
+}
+\item{
+Редактирование файла необходимо выполнять из-под пользователя lm-reports, например, с помощью команды:
+
+\textit{sudo -ulm-reports vi /home/lm-reports/www/web/protected/config/main.local.php
+}
+}
+\item{
+Создать объекты базы данных:
+
+\textit{sudo -ulm-reports php /home/lm-reports/www/web/protected/yiic migrate --interactive=0
+}
+
+Данная команда подключается к серверу баз данных и применяет новые изменения в структуре базы данных, если они описаны в скриптах сайта. Команда считается корректно отработавшей, если последняя строка вывода в консоли является одной из следующих строк:
+
+\textit{Migrated up successfully.\\
+No new migration found. Your system is up-to-date.
+}
+}
+\item{
+Убедиться, что почта отправляется: подставить в следующей команде вместо mail@example.com почтовый ящик, к которому есть доступ, и выполнить:
+
+\textit{sudo -ulm-reports php /home/lm-reports/www/web/protected/yiic test mail --to=mail@example.com
+}
+
+Проверка корректна, если последней строкой вывод команды является:
+
+\textit{
+	done
+}
+
+}
+\item{
+Убедиться, что почта доходит до адресатов: проверить почтовый ящик, используемый в предыдущем пункте, и убедиться, что письмо дошло.
+}
+\item{
+Настроить запуск/мониторинг фоновых процессов:
+
+\textit{sudo cp /etc/supervisord.conf /etc/supervisord.conf.bak\\
+sudo cp /home/lm-reports/www/web/protected/config/rhel/supervisord.conf /etc/supervisord.conf\\
+sudo /etc/init.d/supervisord restart
+}
+
+Команда считается корректно отработанной, если последней строкой вывода в консоли является:
+
+\textit{
+Starting supervisord:          [  OK  ]
+}
+}
+\end{enumerate}
+
+\subsection*{Обновление системы}
+
+Обновление системы выполняется при получении очередной версии дистрибутива.
+
+Подключение к интернету не требуется.
+
+В описании процесса обновления курсивом выделены команды, которые необходимо выполнить в консоли.
+
+Команды необходимо выполнять от имени пользователя, обладающего административными привилегиями.
+
+Для версий системы больше чем 0.3 необходимо подставить в команды ниже вместо lm-reports-0.3.tar.gz название файла дистрибутива.
+
+В случае ошибок при выполнении команд необходимо прервать процесс обновления и обратиться к разработчику, предоставив консольный вывод выполнения команды.
+
+\textbf{Процедура обновления:}
+\begin{enumerate}
+\item{
+Скопировать дистрибутив системы на веб-сервер в каталог /home/lm-reports/ и установить права:
+
+\textit{sudo cp lm-reports-0.3.tar.gz /home/lm-reports\\
+sudo chown lm-reports:lm-reports /home/lm-reports/lm-reports-0.3.tar.gz
+}
+}
+\item{
+Запустить обновление рабочей копии и базы, выполнив команду:
+\textit{sudo -ulm-reports /bin/sh /home/lm-reports/www/web/protected/distr\_update.sh /home/lm-reports/lm-reports-0.3.tar.gz}
+
+Команда считаетется корректно отработавшей, если последней строкой вывода в консоли написано “UPDATED SUCCESSFULLY”.
+
+}
+\item{
+Перезапустить фоновые процессы:
+\textit{sudo /etc/init.d/supervisord restart}
+
+Команда считается корректно отработавшей, если последняя строка содержит:
+\textit{Starting supervisord:                                      [  OK  ]}
+}
+\end{enumerate}
