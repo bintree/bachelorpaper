@@ -155,7 +155,11 @@ VOD-библиотеку провайдера.
 Информация о количестве подписчиков определенного телеканала в пакете не может быть получена из биллинга по той причине, что этой информации там нет, 
 так как при подключении абоненты выбирают именно пакеты каналов. Но при этом можно вычислить усредненное значение этой величины 
 в~рамках определенной даты, территории, пакета и телеканала по формуле:
-$$Subscribers_{channel} = \frac{Subsribers_{packet}} {Channels_{packet}}, $$
+
+\begin{equation}
+Subscribers_{channel} = \frac{Subsribers_{packet}} {Channels_{packet}}, 
+\end{equation}
+
 где $Subscribers_{channel}$ --- искомая величина,  $Subsribers_{packet}$ --- количество подписчиков пакета, 
 а $Channels_{packet}$ --- количество доступных в пакете каналов.
 
@@ -240,7 +244,9 @@ $$Subscribers_{channel} = \frac{Subsribers_{packet}} {Channels_{packet}}, $$
 
 Сумма для для конкретного правообладателя расчитывается следующим образом:
 
-$$Deducts_{licensor} = \sum_{contract \in Contracts} Deducts(contract)$$,
+\begin{equation}
+Deducts_{licensor} = \sum_{contract \in Contracts} Deducts(contract),
+\end{equation}
 
 то есть как сумма отчислений по активным договорам этого лицензиара. 
 
@@ -263,7 +269,9 @@ $$Deducts_{licensor} = \sum_{contract \in Contracts} Deducts(contract)$$,
 В случае раздельного вида расчета для каждого телеканала из пакета, которому принадлежит градация,
 расчет производится отдельно, затем полученные величины суммируются:
 
-$$Deducts_{gradation} = \sum_{channel \in Channels_{packet}} deductbase(gradation, Subscribers_{channel})$$
+\begin{equation}
+Deducts_{gradation} = \sum_{channel \in Channels_{packet}} deductbase(gradation, Subscribers_{channel})
+\end{equation}
 
 Методы вычисления величины $Subscribers_{channel}$ (база канала) описаны в \ref{stat:subscribers}.
 Вид функции $deductbase$(отчисления по базе абонентов) будет описана ниже. 
@@ -276,10 +284,16 @@ $$Deducts_{gradation} = \sum_{channel \in Channels_{packet}} deductbase(gradatio
 
 \paragraph{Суммарный вид расчета}
 Для суммарного вида расчета вычисляется величина:
-$$Subscribers_{gradation} = \max\limits_{channel \in Channels_{packet}} Subscribers_{channel}$$
+
+\begin{equation}
+Subscribers_{gradation} = \max\limits_{channel \in Channels_{packet}} Subscribers_{channel}
+\end{equation}
 
 Сумма отчислений по градации устанавливается как:
-$$Deducts_{gradation} = deductbase(gradation, Subscribers_{gradation})$$
+
+\begin{equation}
+Deducts_{gradation} = deductbase(gradation, Subscribers_{gradation})
+\end{equation}
 
 Градация считается применимой по базе в случае, если величина $Subscribers_{gradation}$ принадлежит отрезку 
 [`Мин. число абонентов'', ``Макс. число абонентов''].
@@ -298,7 +312,10 @@ $$Deducts_{gradation} = deductbase(gradation, Subscribers_{gradation})$$
 $ deductbase(gradation, subscribers) = Fix_{gradation} $.
 
 Расчет по схеме ``Платеж за абонента'' должен происходить по следующей формуле:
-$$ deductbase(G, C) =  \max(C, GR_{G}) \times AP_{G} \times \lfloor \frac{CalcDays}{PeriodDays} \rfloor \times \frac{DeductPercent_{G}}{100}$$
+
+\begin{equation}
+deductbase(G, C) =  \max(C, GR_{G}) \times AP_{G} \times \lfloor \frac{CalcDays}{PeriodDays} \rfloor \times \frac{DeductPercent_{G}}{100}
+\end{equation}
 
 В этой формуле $G$ --- градация, по которой устанавливается сумма, $C$ - количество подписчиков за расчетный период,
 $GR_{G}$ --- характеристика градации ``Минимальное гарантированное число абонентов'',
